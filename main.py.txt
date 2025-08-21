@@ -1,0 +1,100 @@
+import logging
+import requests
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
+
+# === API KEYS ===
+TELEGRAM_BOT_TOKEN = "7624236697:AAHNWGe6qOhRmjsSG_kbGiVay4it_ruy8r0"
+STABILITY_API_KEY = "sk-yoVmIEmI3rS3p9z4iddcU56DA9b2v0EMmbt2UOwLNdyhZVcZ"
+
+# === Logging ===
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
+
+# === Bot Commands ===
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("📊 Football Odds", callback_data="odds")],
+        [InlineKeyboardButton("🎨 AI Art Generator", callback_data="aiart")],
+        [InlineKeyboardButton("🏗 ÒsánVault Updates", callback_data="osanvault")],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text(
+        "👋 Welcome to ÒsánVault Bot!\n\nChoose a feature below:", reply_markup=reply_markup
+    )
+
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == "odds":
+        await query.edit_message_text("📊 Today’s high-probability football odds:\n\n1️⃣ Safe: Over 1.5 Goals\n2️⃣ Medium: Both Teams to Score\n3️⃣ High Risk: Correct Score 2-1")
+    elif query.data == "aiart":
+        await query.edit_message_text("🎨 Send me a text prompt and I’ll create AI art for you.")
+    elif query.data == "osanvault":
+        await query.edit_message_text("🏗 ÒsánVault is Africa’s first tokenized real estate vault. 🚀\n\nStay tuned for project updates and investment opportunities!")
+
+async def generate_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    prompt = update.message.text
+
+    # Stability AI API
+    url = "https://api.stability.ai/v2beta/stable-image/generate/core"
+    headers = {"Authorization": f"Bearer {STABILITY_API_KEY}"}
+    files = {"prompt": (None, prompt)}
+
+    response = requests.post(url, headers=headers, files=files)
+
+    if response.status_code == 200:
+        with open("output.png", "wb") as f:
+            f.write(response.content)
+        await update.message.reply_photo(photo=open("output.png", "rb"))
+    else:
+        await update.message.reply_text("❌ Failed to generate image. Try again later.")
+
+# === Main App ===
+def main():
+    app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, generate_ai))
+    app.add_handler(MessageHandler(filters.COMMAND, start))
+    app.add_handler(MessageHandler(filters.ALL, start))
+    app.add_handler(MessageHandler(filters.Regex(".*"), generate_ai))
+    app.add_handler(MessageHandler(filters.ALL, start))
+
+    app.add_handler(MessageHandler(filters.TEXT, generate_ai))
+    app.add_handler(MessageHandler(filters.TEXT, generate_ai))
+    app.add_handler(MessageHandler(filters.TEXT, generate_ai))
+
+    app.add_handler(MessageHandler(filters.ALL, start))
+    app.add_handler(MessageHandler(filters.ALL, start))
+
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, generate_ai))
+    app.add_handler(MessageHandler(filters.ALL, start))
+
+    app.add_handler(MessageHandler(filters.TEXT, generate_ai))
+    app.add_handler(MessageHandler(filters.TEXT, generate_ai))
+
+    app.add_handler(MessageHandler(filters.ALL, start))
+    app.add_handler(MessageHandler(filters.ALL, start))
+
+    app.add_handler(MessageHandler(filters.TEXT, generate_ai))
+    app.add_handler(MessageHandler(filters.TEXT, generate_ai))
+
+    app.add_handler(MessageHandler(filters.ALL, start))
+    app.add_handler(MessageHandler(filters.ALL, start))
+
+    app.add_handler(MessageHandler(filters.TEXT, generate_ai))
+    app.add_handler(MessageHandler(filters.TEXT, generate_ai))
+
+    app.add_handler(MessageHandler(filters.ALL, start))
+    app.add_handler(MessageHandler(filters.ALL, start))
+
+    app.add_handler(MessageHandler(filters.TEXT, generate_ai))
+    app.add_handler(MessageHandler(filters.TEXT, generate_ai))
+
+    app.run_polling()
+
+if __name__ == "__main__":
+    main()
